@@ -1,3 +1,9 @@
+This is a fork of the EN-wiki's admin panel backup script with the necessary modifications to run outside of TamperMonkey and inside a headless webdriver for easier integration with [SCUTTLE](https://github.com/scp-cs/scuttle).
+
+The original README follows:
+
+-----
+
 ## Admin Panel Backup User Script
 
 This userscript is intended for Wikidot site administrators to back up data related to a site's settings, ban data, and membership.
