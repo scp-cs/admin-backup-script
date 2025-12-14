@@ -252,6 +252,7 @@ function promptFileDownload(filename, blob) {
   link.id = 'backup-download-object';
   link.href = URL.createObjectURL(blob);
   link.download = filename;
+  link.click()
 }
 
 async function createZip(files) {
