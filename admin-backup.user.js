@@ -268,10 +268,9 @@ async function requestModuleHtmlPro(moduleName, params=null) {
 
 function promptFileDownload(filename, blob) {
   const link = document.createElement('a');
+  link.id = 'backup-download-object';
   link.href = URL.createObjectURL(blob);
   link.download = filename;
-  link.click();
-  link.remove();
 }
 
 async function createZip(files) {
