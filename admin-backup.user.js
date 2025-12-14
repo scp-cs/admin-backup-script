@@ -220,25 +220,6 @@ function parseForumPermissions(value) {
   return permissions;
 }
 
-// Utilities
-
-function showConfirmation(actionName, content) {
-  return new Promise((resolve, reject) => {
-    const win = new OZONE.dialogs.ConfirmationDialog();
-    win.content = content;
-    win.buttons = ['cancel', actionName];
-    win.addButtonListener(actionName, () => {
-      win.close();
-      resolve();
-    });
-    win.addButtonListener('cancel', () => {
-      win.close();
-      reject();
-    });
-    win.show();
-  });
-}
-
 async function requestModule(moduleName, params=null) {
   console.debug('Making an AJAX module request', moduleName, params);
   const result = await new Promise((resolve) => {
@@ -983,6 +964,10 @@ async function runBackupInner(withSiteMembers) {
 
   const zipBlob = await createZip(zipFiles);
   promptFileDownload(`${siteInfo.slug}.zip`, zipBlob);
+
+  /*
+  URL objects don't need to be revoked anymore since the browser will close immediately after finishing
+
   URL.revokeObjectURL(zipBlob);
 
   for (const icon of icons) {
@@ -990,66 +975,10 @@ async function runBackupInner(withSiteMembers) {
       URL.revokeObjectURL(icon.blob);
     }
   }
+    */
 }
 
-async function runBackup(backupButton, backupProgress, withMembers = true) {
-  const message = withMembers
-    ? 'Are you sure you want to start a <strong>full</strong> admin panel backup?'
-    : 'Are you sure you want to start an admin panel backup <strong>without site members</strong>?<br>This option is faster but leaves site membership data uncollected.';
-  await showConfirmation('run backup', message);
-
-  console.info('Starting backup!');
-  backupButton.innerText = 'Backup Running';
-  backupButton.setAttribute('disabled', '');
-  backupProgress.classList.remove('hidden');
-
-  try {
-    await runBackupInner(withMembers);
-  } finally {
-    backupButton.innerText = 'Run Admin Panel Backup';
-    backupButton.removeAttribute('disabled');
-    backupProgress.classList.add('hidden');
-  }
-}
-
-function setup(headerElement) {
-  console.info('Setting up admin panel backup system');
-
-  const backupProgress = document.createElement('progress');
-  backupProgress.classList.add('hidden');
-  backupProgress.style = 'margin-left: 1em';
-
-  const backupButton = document.createElement('button');
-  backupButton.innerText = 'Backup admin panel';
-  backupButton.classList.add('btn');
-  backupButton.style = 'margin-right: 0.1em';
-  backupButton.addEventListener('click', () => runBackup(backupButton, backupProgress, true));
-
-  const backupButton2 = document.createElement('button');
-  backupButton2.innerText = 'Backup without site members';
-  backupButton2.classList.add('btn');
-  backupButton2.addEventListener('click', () => runBackup(backupButton, backupProgress, false));
-
-  headerElement.appendChild(backupButton);
-  headerElement.appendChild(backupButton2);
-  headerElement.appendChild(backupProgress);
-}
-
-function main() {
-  console.debug('Creating observer for admin panel page');
-  const element = document.getElementById('sm-action-area');
-  if (element === null) {
-    throw new Error('Cannot find sm-action-area in document');
-  }
-
-  const observer = new MutationObserver(async () => {
-    const headerElement = element.querySelector('.page-header');
-    if (headerElement !== null) {
-      // it has loaded in, run setup
-      setup(headerElement);
-    }
-  });
-  observer.observe(element, { childList: true });
-}
-
-main();
+// Add the function to the global context
+// Selenium's driver.execute_script executes scripts as an anonymous function which is immediately called
+// The defined functions wouldn't otherwise persist until the backup is started
+window.runBackupInner = runBackupInner
